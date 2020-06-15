@@ -1,4 +1,4 @@
-package com.jaegartracingjavaservice.demo;
+package com.jaegartracingjavaservice;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
