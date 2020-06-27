@@ -1,0 +1,5 @@
+opentracing:
+  spring:
+    cloud:
+      log:
+        enabled: true
