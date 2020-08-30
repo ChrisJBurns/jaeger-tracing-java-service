@@ -1,5 +1,1 @@
-opentracing:
-  spring:
-    cloud:
-      log:
-        enabled: true
+server.port: 8090

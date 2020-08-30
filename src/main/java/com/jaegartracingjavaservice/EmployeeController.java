@@ -1,31 +1,72 @@
 package com.jaegartracingjavaservice;
 
-import io.swagger.annotations.ApiOperation;
-import lombok.RequiredArgsConstructor;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping
 @Slf4j
-@RequiredArgsConstructor
+@NoArgsConstructor
 public class EmployeeController {
 
-    private final RestTemplate restTemplate;
-
-    @ApiOperation(value = "Create Employee ", response = ResponseEntity.class)
     @RequestMapping(value = "/api/tutorial/1.0/employees", method = RequestMethod.POST)
     public ResponseEntity createEmployee(@RequestBody Employee employee) {
         log.info("Receive Request to add employee {}", employee);
 
-        ResponseEntity<String> result = restTemplate.getForEntity("https://chrisjburns.com/", String.class);
-        log.info("Body of request is: {}", result.getBody());
+        makePost().subscribe(
+                element -> log.info("Employee object: {} ", element.toString()),
+                error -> log.error(error.getMessage()),
+                () -> log.info("Request completed.")
+        );
+
         return new ResponseEntity(null, HttpStatus.OK);
+    }
+
+    @RequestMapping(value = "/api/tutorial/1.0/employees/{id}", method = RequestMethod.GET)
+    public ResponseEntity getEmployee(@PathVariable("id") String id) {
+        log.info("Receive Request to get employee {}", id);
+
+        makeCall()
+            .subscribe(
+                log::info,
+                error -> log.error(error.getMessage()),
+                () -> log.info("Request completed.")
+            );
+
+        return new ResponseEntity(null, HttpStatus.OK);
+    }
+
+    public Mono<EmployeeGo> makePost() {
+        return client()
+                .post()
+                .uri("/employee")
+                .body(Mono.just(createEmployee()), EmployeeGo.class)
+                .retrieve()
+                .bodyToMono(EmployeeGo.class);
+    }
+
+    private EmployeeGo createEmployee() {
+        EmployeeGo employee = new EmployeeGo();
+        employee.setFirstName("Chris");
+        employee.setLastName("Burns");
+        employee.setOccupation("Software Engineer");
+        employee.setSalaryGrade("A10");
+        return employee;
+    }
+
+    public Mono<String> makeCall() {
+        return client()
+                .get()
+                .retrieve()
+                .bodyToMono(String.class);
+    }
+
+    private WebClient client () {
+        return WebClient.create("http://jaeger-tracing-go-service:8091");
     }
 }
