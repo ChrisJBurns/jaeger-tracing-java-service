@@ -18,11 +18,12 @@ public class EmployeeController {
     public ResponseEntity createEmployee(@RequestBody Employee employee) {
         log.info("Receive Request to add employee {}", employee);
 
-        makePost(employee).subscribe(
+        makePost(employee)
+            .subscribe(
                 element -> log.info("Employee object: {} ", element.toString()),
                 error -> log.error(error.getMessage()),
                 () -> log.info("Request completed.")
-        );
+            );
 
         return new ResponseEntity(null, HttpStatus.OK);
     }
