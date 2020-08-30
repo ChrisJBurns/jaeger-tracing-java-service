@@ -4,7 +4,7 @@ import lombok.Value;
 
 @Value
 public class Employee {
-
     String firstName;
-    String surname;
+    String lastName;
+    String occupation;
 }

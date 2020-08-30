@@ -18,7 +18,7 @@ public class EmployeeController {
     public ResponseEntity createEmployee(@RequestBody Employee employee) {
         log.info("Receive Request to add employee {}", employee);
 
-        makePost().subscribe(
+        makePost(employee).subscribe(
                 element -> log.info("Employee object: {} ", element.toString()),
                 error -> log.error(error.getMessage()),
                 () -> log.info("Request completed.")
@@ -41,22 +41,22 @@ public class EmployeeController {
         return new ResponseEntity(null, HttpStatus.OK);
     }
 
-    public Mono<EmployeeGo> makePost() {
+    public Mono<EmployeeGo> makePost(Employee employee) {
         return client()
                 .post()
                 .uri("/employee")
-                .body(Mono.just(createEmployee()), EmployeeGo.class)
+                .body(Mono.just(createEmployeeGo(employee)), EmployeeGo.class)
                 .retrieve()
                 .bodyToMono(EmployeeGo.class);
     }
 
-    private EmployeeGo createEmployee() {
-        EmployeeGo employee = new EmployeeGo();
-        employee.setFirstName("Chris");
-        employee.setLastName("Burns");
-        employee.setOccupation("Software Engineer");
-        employee.setSalaryGrade("A10");
-        return employee;
+    private EmployeeGo createEmployeeGo(Employee employee) {
+        EmployeeGo employeeGo = new EmployeeGo();
+        employeeGo.setFirstName(employee.getFirstName());
+        employeeGo.setLastName(employee.getLastName());
+        employeeGo.setOccupation(employee.getOccupation());
+        employeeGo.setSalaryGrade("A10");
+        return employeeGo;
     }
 
     public Mono<String> makeCall() {
