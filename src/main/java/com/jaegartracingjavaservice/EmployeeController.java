@@ -1,6 +1,8 @@
 package com.jaegartracingjavaservice;
 
-import lombok.NoArgsConstructor;
+import com.jaegartracingjavaservice.service.SalaryGrade;
+import com.jaegartracingjavaservice.service.SalaryGradeService;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,14 +13,19 @@ import reactor.core.publisher.Mono;
 @RestController
 @RequestMapping
 @Slf4j
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class EmployeeController {
+
+    private final SalaryGradeService salaryGradeService;
 
     @RequestMapping(value = "/api/tutorial/1.0/employees", method = RequestMethod.POST)
     public ResponseEntity createEmployee(@RequestBody Employee employee) {
         log.info("Receive Request to add employee {}", employee);
 
-        makePost(employee)
+        Mono<SalaryGrade> salaryGrade = salaryGradeService.getSalaryGradeForOccupation(employee.getOccupation());
+        Mono<Object> result = salaryGrade.flatMap(grade -> makePost(createEmployeeGo(employee, grade.getSalaryGrade())));
+
+        result
             .subscribe(
                 element -> log.info("Employee object: {} ", element.toString()),
                 error -> log.error(error.getMessage()),
@@ -42,21 +49,21 @@ public class EmployeeController {
         return new ResponseEntity(null, HttpStatus.OK);
     }
 
-    public Mono<EmployeeGo> makePost(Employee employee) {
+    public Mono<EmployeeGo> makePost(EmployeeGo employeeGo) {
         return client()
                 .post()
                 .uri("/employee")
-                .body(Mono.just(createEmployeeGo(employee)), EmployeeGo.class)
+                .body(Mono.just(employeeGo), EmployeeGo.class)
                 .retrieve()
                 .bodyToMono(EmployeeGo.class);
     }
 
-    private EmployeeGo createEmployeeGo(Employee employee) {
+    private EmployeeGo createEmployeeGo(Employee employee, String salaryGrade) {
         EmployeeGo employeeGo = new EmployeeGo();
         employeeGo.setFirstName(employee.getFirstName());
         employeeGo.setLastName(employee.getLastName());
         employeeGo.setOccupation(employee.getOccupation());
-        employeeGo.setSalaryGrade("A10");
+        employeeGo.setSalaryGrade(salaryGrade);
         return employeeGo;
     }
 
